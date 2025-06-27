@@ -2,32 +2,42 @@ name: Terraform CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
-
     env:
       TERRAFORM_VERSION: "1.6.6"
       TF_COMMAND: "apply"
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    # 1️⃣  Grab the code
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Install Terraform
-        run: |
-          wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/
+    # 2️⃣  Inject AWS creds into the runner’s env
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region:            "us-east-1"
+        # If you’re using OIDC + IAM role, replace the three lines above with:
+        # role-to-assume: arn:aws:iam::123456789012:role/GitHubOIDCRole
 
-      - name: Terraform Init & Apply
-        run: |
-          cd terraform-manifests
-          ls -la 
-          # terraform init -input=false --backend-config=dev.conf
-          # terraform validate
-          # terraform plan -lock=false -input=false -var-file=dev.tfvars
-          # terraform $TF_COMMAND -input=false -var-file=dev.tfvars -auto-approve
+    # 3️⃣  Install the requested Terraform CLI
+    - name: Install Terraform ${{ env.TERRAFORM_VERSION }}
+      run: |
+        wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+        unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+        sudo mv terraform /usr/local/bin/
+
+    # 4️⃣  Init → validate → plan → apply
+    - name: Terraform Init / Plan / ${{ env.TF_COMMAND }}
+      run: |
+        cd terraform-manifests
+        terraform init -input=false --backend-config=dev.conf
+        terraform validate
+        terraform plan -lock=false -input=false -var-file=dev.tfvars
+        terraform ${TF_COMMAND} -input=false -var-file=dev.tfvars -auto-approve
