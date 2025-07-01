@@ -40,6 +40,7 @@ jobs:
     # 4️⃣  Init → validate → plan → apply
     - name: Terraform Init / Plan / ${{ env.TF_COMMAND }}
       run: |
+        aws s3 ls
         cd terraform-manifests
         terraform init -input=false --backend-config=dev.conf
         terraform validate
