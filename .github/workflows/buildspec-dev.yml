@@ -31,7 +31,7 @@ jobs:
       run: |
         wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
         unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-        sudo mv terraform /usr/local/bin/
+        sudo mv  terraform /usr/local/bin/
 
     # 4️⃣  Init → validate → plan → apply
     - name: Terraform Init / Plan / ${{ env.TF_COMMAND }}
@@ -40,4 +40,4 @@ jobs:
         terraform init -input=false --backend-config=dev.conf
         terraform validate
         terraform plan -lock=false -input=false -var-file=dev.tfvars
-        terraform ${TF_COMMAND} -input=false -var-file=dev.tfvars   -auto-approve
+        terraform ${TF_COMMAND} -input=false -var-file=dev.tfvars -auto-approve
