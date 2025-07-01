@@ -42,7 +42,7 @@ jobs:
       run: |
         aws s3 ls
         cd terraform-manifests
-        terraform init -input=false --backend-config=dev.conf
+        terraform init
         terraform validate
         terraform plan -lock=false -input=false -var-file=dev.tfvars
         terraform ${TF_COMMAND} -input=false -var-file=dev.tfvars   -auto-approve
