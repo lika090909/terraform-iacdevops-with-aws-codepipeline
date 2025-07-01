@@ -9,6 +9,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    environment: production
     env:
       TERRAFORM_VERSION: "1.6.6"
       TF_COMMAND: "apply"
